@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 """
-Enhanced SOCMINT Tool - Comprehensive Public Information Collection
+Enhanced SOCMINT Tool - Comprehensive Public Intelligence Collection
 Gathers publicly available information from social media platforms ethically.
 Designed for educational and security research purposes only.
 
 Key improvements:
 - Enhanced public information extraction
 - Better error handling and rate limiting
-- More comprehensive reporting
+- Comprehensive reporting and analysis
 - Platform-specific optimizations
+- Enhanced display of search results
 """
 
 import argparse
@@ -55,8 +56,7 @@ class EnhancedSOCMINTTool:
         # Multiple approaches for better data extraction
         urls_to_try = [
             f"https://www.instagram.com/{username}/",
-            f"https://www.instagram.com/{username}/?__a=1",
-            f"https://i.instagram.com/api/v1/users/usernameinfo/{username}/"
+            f"https://www.instagram.com/{username}/?__a=1"
         ]
         
         for url in urls_to_try:
@@ -95,8 +95,7 @@ class EnhancedSOCMINTTool:
                             'business_category': user_data.get('business_category_name', 'N/A'),
                             'connected_fb_page': user_data.get('connected_fb_page', {}).get('username', 'N/A') if user_data.get('connected_fb_page') else 'N/A',
                             'has_highlight_reels': user_data.get('has_highlight_reels', False),
-                            'total_igtv_videos': user_data.get('edge_felix_video_timeline', {}).get('count', 0),
-                            'total_ar_effects': user_data.get('effects_sticker_hashtag_edges', {}).get('count', 0)
+                            'total_igtv_videos': user_data.get('edge_felix_video_timeline', {}).get('count', 0)
                         }
                         
                         # Extract location information
@@ -134,7 +133,7 @@ class EnhancedSOCMINTTool:
                                 'is_video': node.get('is_video', False),
                                 'is_carousel': node.get('is_carousel', False),
                                 'location': node.get('location', {}).get('name', 'N/A') if node.get('location') else 'N/A',
-                                ' tagged_users': [tag.get('node', {}).get('username', 'N/A') for tag in node.get('edge_media_to_tagged_user', {}).get('edges', [])],
+                                'tagged_users': [tag.get('node', {}).get('username', 'N/A') for tag in node.get('edge_media_to_tagged_user', {}).get('edges', [])],
                                 'hashtags': re.findall(r'#(\w+)', node.get('edge_media_to_caption', {}).get('edges', [{}])[0].get('node', {}).get('text', ''))
                             }
                             recent_posts.append(post_info)
@@ -170,8 +169,7 @@ class EnhancedSOCMINTTool:
         # Multiple approaches for TikTok data extraction
         urls_to_try = [
             f"https://www.tiktok.com/@{username}",
-            f"https://www.tiktok.com/@{username}/video",
-            f"https://m.tiktok.com/@{username}"
+            f"https://www.tiktok.com/@{username}/video"
         ]
         
         for url in urls_to_try:
@@ -277,8 +275,7 @@ class EnhancedSOCMINTTool:
         # Multiple approaches for Facebook data extraction
         urls_to_try = [
             f"https://www.facebook.com/{username}",
-            f"https://www.facebook.com/{username}/about",
-            f"https://www.facebook.com/{username}/photos"
+            f"https://www.facebook.com/{username}/about"
         ]
         
         for url in urls_to_try:
@@ -439,6 +436,163 @@ class EnhancedSOCMINTTool:
         found_count = len([p for p in found_platforms.values() if p['status'] == 'found'])
         print(f"[+] Cross-platform search completed. Found on {found_count} platforms")
     
+    def display_search_results(self):
+        """Enhanced display of search results with formatting"""
+        print("\n" + "="*80)
+        print("SOCMINT INTELLIGENCE REPORT".center(80))
+        print("="*80)
+        print(f"TARGET USERNAME: {self.target_username}".center(80))
+        print(f"GENERATED: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}".center(80))
+        print("="*80)
+        
+        # Display Instagram Results
+        if 'instagram' in self.results:
+            print("\n" + "INSTAGRAM ANALYSIS".center(80))
+            print("-"*80)
+            instagram_data = self.results['instagram']
+            
+            if 'error' in instagram_data:
+                print(f"❌ Error: {instagram_data['error']}")
+            else:
+                print(f"👤 Username: {instagram_data.get('username', 'N/A')}")
+                print(f"📝 Full Name: {instagram_data.get('full_name', 'N/A')}")
+                print(f"📄 Biography: {instagram_data.get('biography', 'N/A')}")
+                print(f"🔗 External URL: {instagram_data.get('external_url', 'N/A')}")
+                print(f"👥 Followers: {instagram_data.get('followers', 0):,}")
+                print(f"👫 Following: {instagram_data.get('following', 0):,}")
+                print(f"📸 Posts: {instagram_data.get('posts', 0):,}")
+                print(f"🔒 Private Account: {'Yes' if instagram_data.get('is_private', False) else 'No'}")
+                print(f"✅ Verified: {'Yes' if instagram_data.get('is_verified', False) else 'No'}")
+                print(f"💼 Account Type: {instagram_data.get('account_type', 'N/A')}")
+                
+                if instagram_data.get('location'):
+                    loc = instagram_data['location']
+                    print(f"📍 Location: {loc.get('city', 'N/A')}, {loc.get('country', 'N/A')}")
+                
+                if instagram_data.get('business_category'):
+                    print(f"🏢 Business Category: {instagram_data['business_category']}")
+                
+                if instagram_data.get('recent_posts'):
+                    print(f"\n📱 Recent Posts (Last 5):")
+                    for i, post in enumerate(instagram_data['recent_posts'][:5]):
+                        print(f"  {i+1}. {post.get('caption', 'No caption')[:100]}...")
+                        print(f"     👍 {post.get('likes', 0)} likes | 💬 {post.get('comments', 0)} comments")
+                        print(f"     🔗 {post.get('url', 'N/A')}")
+                        print()
+        
+        # Display TikTok Results
+        if 'tiktok' in self.results:
+            print("\n" + "TIKTOK ANALYSIS".center(80))
+            print("-"*80)
+            tiktok_data = self.results['tiktok']
+            
+            if 'error' in tiktok_data:
+                print(f"❌ Error: {tiktok_data['error']}")
+            else:
+                print(f"👤 Username: {tiktok_data.get('username', 'N/A')}")
+                print(f"🎵 Nickname: {tiktok_data.get('nickname', 'N/A')}")
+                print(f"📄 Bio: {tiktok_data.get('bio', 'N/A')}")
+                print(f"👥 Followers: {tiktok_data.get('followers', 0):,}")
+                print(f"👫 Following: {tiktok_data.get('following', 0):,}")
+                print(f"❤️ Likes: {tiktok_data.get('likes', 0):,}")
+                print(f"🎥 Videos: {tiktok_data.get('videos', 0):,}")
+                print(f"🔒 Private Account: {'Yes' if tiktok_data.get('is_private', False) else 'No'}")
+                print(f"✅ Verified: {'Yes' if tiktok_data.get('is_verified', False) else 'No'}")
+                
+                if tiktok_data.get('region'):
+                    print(f"🌍 Region: {tiktok_data['region']}")
+                
+                if tiktok_data.get('recent_videos'):
+                    print(f"\n🎬 Recent Videos (Last 5):")
+                    for i, video in enumerate(tiktok_data['recent_videos'][:5]):
+                        print(f"  {i+1}. {video.get('title', 'No title')[:100]}...")
+                        print(f"     👁️ {video.get('play_count', 0):,} views | ❤️ {video.get('digg_count', 0):,} likes")
+                        print(f"     💬 {video.get('comment_count', 0):,} comments | 🔄 {video.get('share_count', 0):,} shares")
+                        print()
+        
+        # Display Facebook Results
+        if 'facebook' in self.results:
+            print("\n" + "FACEBOOK ANALYSIS".center(80))
+            print("-"*80)
+            facebook_data = self.results['facebook']
+            
+            if 'error' in facebook_data:
+                print(f"❌ Error: {facebook_data['error']}")
+            else:
+                print(f"👤 Username: {facebook_data.get('username', 'N/A')}")
+                print(f"📄 Page Title: {facebook_data.get('page_title', 'N/A')}")
+                print(f"📝 Meta Description: {facebook_data.get('meta_description', 'N/A')}")
+                print(f"📸 Photos Available: {'Yes' if facebook_data.get('photos') else 'No'}")
+                print(f"👥 Interests/Likes: {len(facebook_data.get('likes', []))} found")
+                
+                if facebook_data.get('about_section'):
+                    print(f"📋 About Section: {facebook_data['about_section'][:200]}...")
+                
+                if facebook_data.get('public_posts'):
+                    print(f"\n📱 Public Posts (Last 3):")
+                    for i, post in enumerate(facebook_data['public_posts'][:3]):
+                        print(f"  {i+1}. {post.get('content', 'No content')[:150]}...")
+                        print()
+        
+        # Display Cross-Platform Results
+        if 'cross_platform' in self.results:
+            print("\n" + "CROSS-PLATFORM ANALYSIS".center(80))
+            print("-"*80)
+            cross_data = self.results['cross_platform']
+            
+            found_platforms = [p for p in cross_data.values() if p['status'] == 'found']
+            redirect_platforms = [p for p in cross_data.values() if p['status'] == 'redirect']
+            
+            print(f"✅ Found on {len(found_platforms)} platforms:")
+            for platform, data in cross_data.items():
+                if data['status'] == 'found':
+                    print(f"  • {platform}")
+                elif data['status'] == 'redirect':
+                    print(f"  • {platform} → {data.get('redirect_url', 'N/A')}")
+            
+            print(f"\n🔄 Redirects on {len(redirect_platforms)} platforms:")
+            for platform, data in cross_data.items():
+                if data['status'] == 'redirect':
+                    print(f"  • {platform}")
+        
+        # Summary Statistics
+        print("\n" + "INTELLIGENCE SUMMARY".center(80))
+        print("-"*80)
+        
+        total_platforms = len([k for k in self.results.keys() if k != 'cross_platform'])
+        total_findings = 0
+        
+        for platform, data in self.results.items():
+            if platform != 'cross_platform' and isinstance(data, dict) and 'error' not in data:
+                if platform == 'instagram':
+                    total_findings += sum([
+                        1 if data.get(key) else 0 
+                        for key in ['full_name', 'biography', 'external_url', 'business_category', 'location']
+                    ])
+                elif platform == 'tiktok':
+                    total_findings += sum([
+                        1 if data.get(key) else 0 
+                        for key in ['nickname', 'bio', 'region', 'contact_info']
+                    ])
+                elif platform == 'facebook':
+                    total_findings += len(data.get('public_posts', [])) + len(data.get('likes', []))
+        
+        cross_found = len([p for p in self.results.get('cross_platform', {}).values() if p['status'] == 'found'])
+        
+        print(f"📊 Platforms Analyzed: {total_platforms}")
+        print(f"🔍 Total Findings: {total_findings}")
+        print(f"🌐 Cross-Platform Matches: {cross_found}")
+        print(f"📊 Digital Footprint Score: {min(100, (cross_found * 10) + (total_findings * 2))}/100")
+        
+        risk_level = "Low"
+        if min(100, (cross_found * 10) + (total_findings * 2)) > 70:
+            risk_level = "High"
+        elif min(100, (cross_found * 10) + (total_findings * 2)) > 40:
+            risk_level = "Medium"
+        
+        print(f"⚠️  Risk Assessment: {risk_level}")
+        print("="*80)
+    
     def generate_enhanced_report(self, output_format='json'):
         """Generate enhanced comprehensive report with analysis"""
         if not self.results:
@@ -540,20 +694,10 @@ class EnhancedSOCMINTTool:
                             writer.writerow([platform, key, str(value)])
             
             print(f"[+] Enhanced report saved as: {filename}")
-        
-        # Print enhanced summary
-        print(f"\n[=== ENHANCED INTELLIGENCE SUMMARY ===]")
-        print(f"Target: {self.target_username}")
-        print(f"Platforms Analyzed: {report['analysis']['platforms_analyzed']}")
-        print(f"Total Findings: {report['analysis']['total_findings']}")
-        print(f"Cross-Platform Matches: {cross_found}")
-        print(f"Digital Footprint Score: {report['analysis']['digital_footprint_score']}/100")
-        print(f"Risk Assessment: {report['analysis']['risk_assessment']}")
-        print(f"[=====================================]")
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Enhanced SOCMINT Tool - Comprehensive Public Information Collection',
+        description='Enhanced SOCMINT Tool - Comprehensive Public Intelligence Collection',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -616,6 +760,9 @@ Examples:
     # Perform enhanced cross-platform search if requested
     if args.cross_platform:
         tool.enhanced_cross_platform_search(args.username)
+    
+    # Display enhanced search results
+    tool.display_search_results()
     
     # Generate enhanced report
     tool.generate_enhanced_report(args.output)
